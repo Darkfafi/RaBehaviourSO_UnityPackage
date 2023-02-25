@@ -9,18 +9,27 @@ namespace RaBehaviourSO
 	/// If you want to preserve the <see cref="RaBehaviourSOBase"/>, Use unregister only when the next scene has chance to Register. 
 	/// Or call it on the OnDestroy of an object marked with "Don't Destroy On Load" only to clean the <see cref="RaBehaviourSOBase"/> when you exit play mode
 	/// </summary>
-	public class RaBehaviourSOController : IDisposable
+	public class RaBehaviourSOController<TRaBehaviourSO> : IDisposable
+		where TRaBehaviourSO : RaBehaviourSOBase
 	{
-		private readonly HashSet<object> _users;
+		public delegate void BehaviourHandler(TRaBehaviourSO behaviourSO);
 
-		public RaBehaviourSOBase[] Behaviours
+		private readonly HashSet<object> _users;
+		private BehaviourHandler _onInit;
+		private BehaviourHandler _onDeinit;
+
+		public TRaBehaviourSO[] Behaviours
 		{
 			get;
 		}
 
-		public RaBehaviourSOController(RaBehaviourSOBase[] behaviours)
+		public RaBehaviourSOController(TRaBehaviourSO[] behaviours, BehaviourHandler onInit = null, BehaviourHandler onDeinit = null)
 		{
 			Behaviours = behaviours;
+
+			_onInit = onInit;
+			_onDeinit = onDeinit;
+			
 			_users = new HashSet<object>();
 		}
 
@@ -31,11 +40,10 @@ namespace RaBehaviourSO
 		public void Register(object user)
 		{
 			_users.Add(user);
-			
+
 			try
 			{
-				ForEach(x => x.Initialize());
-				ForEach(x => x.Initialized());
+				PerformInit();
 			}
 			catch(Exception e)
 			{
@@ -53,12 +61,12 @@ namespace RaBehaviourSO
 			_users.Remove(user);
 			if(_users.Count == 0)
 			{
-				ForEach(x => x.Deinitialize());
+				PerformDeinit();
 			}
 		}
 
 		public List<T> GetBehaviours<T>(Predicate<T> predicate)
-				where T : RaBehaviourSOBase
+				where T : TRaBehaviourSO
 		{
 			List<T> returnValue = new List<T>();
 			for(int i = 0; i < Behaviours.Length; i++)
@@ -73,7 +81,7 @@ namespace RaBehaviourSO
 		}
 
 		public bool TryGetBehaviour<T>(out T behaviour, Predicate<T> predicate = null)
-			where T : RaBehaviourSOBase
+			where T : TRaBehaviourSO
 		{
 			for(int i = 0; i < Behaviours.Length; i++)
 			{
@@ -90,7 +98,7 @@ namespace RaBehaviourSO
 		}
 
 		public void ForEach<T>(Action<T> action)
-			where T : RaBehaviourSOBase
+			where T : TRaBehaviourSO
 		{
 			for(int i = 0; i < Behaviours.Length; i++)
 			{
@@ -102,7 +110,7 @@ namespace RaBehaviourSO
 			}
 		}
 
-		public void ForEach(Action<RaBehaviourSOBase> action)
+		public void ForEach(Action<TRaBehaviourSO> action)
 		{
 			for(int i = 0; i < Behaviours.Length; i++)
 			{
@@ -116,7 +124,7 @@ namespace RaBehaviourSO
 		public void ForceDeinitialization()
 		{
 			_users.Clear();
-			ForEach(x => x.Deinitialize());
+			PerformDeinit();
 		}
 
 		/// <summary>
@@ -124,8 +132,45 @@ namespace RaBehaviourSO
 		/// </summary>
 		public void Dispose()
 		{
-			_users.Clear();
+			ForceDeinitialization();
 			ForEach(x => x.Dispose());
+
+			_onInit = null;
+			_onDeinit = null;
+		}
+
+		private void PerformInit()
+		{
+			if(_onInit != null)
+			{
+				ForEach(x =>
+				{
+					_onInit(x);
+					x.Initialize();
+				});
+			}
+			else
+			{
+				ForEach(x => x.Initialize());
+			}
+
+			ForEach(x => x.Initialized());
+		}
+
+		private void PerformDeinit()
+		{
+			if(_onDeinit != null)
+			{
+				ForEach(x =>
+				{
+					x.Deinitialize();
+					_onDeinit(x);
+				});
+			}
+			else
+			{
+				ForEach(x => x.Deinitialize());
+			}
 		}
 	}
 }
