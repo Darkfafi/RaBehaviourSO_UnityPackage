@@ -1,0 +1,22 @@
+{
+  "name": "rasofiagames.rabehaviourso",
+  "displayName": "RaBehaviourSO",
+  "version": "1.0.0",
+  "unity": "2019.4",
+  "description": "A tool which manages ScriptableObjects which contain state",
+  "keywords": [
+    "ScriptableObjects",
+    "State",
+    "Data",
+    "Behaviour",
+    "Dispose",
+    "Lifecycle",
+    "Management",
+    "Memory",
+    "Systems"
+  ],
+  "author": {
+    "name": "Rasofia Games"
+  },
+  "type": "tool"
+}
