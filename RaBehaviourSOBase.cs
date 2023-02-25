@@ -82,7 +82,7 @@ namespace RaBehaviourSO
 			{
 				if(behaviour._state == State.None)
 				{
-					message = $"Dependency {behaviour.name} not being initialized";
+					message = $"Dependency not in initialization flow";
 					return false;
 				}
 			}
@@ -140,9 +140,10 @@ namespace RaBehaviourSO
 		{
 			for(int i = 0; i < _dependencies.Length; i++)
 			{
-				if(!CheckDependency(_dependencies[i], out string message))
+				var dependency = _dependencies[i];
+				if(!CheckDependency(dependency, out string message))
 				{
-					throw new InvalidDependencyException(message);
+					throw new InvalidDependencyException($"[{name}]: Dependency '{dependency.name}' check failed. Message: {message}");
 				}
 			}
 		}
