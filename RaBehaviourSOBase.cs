@@ -16,7 +16,7 @@ namespace RaBehaviourSO
 
 		public bool IsInitialized => _state == State.Initialized;
 
-		private State _state = State.None;
+		internal State _state = State.None;
 
 		protected void Awake()
 		{
@@ -147,7 +147,7 @@ namespace RaBehaviourSO
 			}
 		}
 
-		private enum State
+		internal enum State
 		{
 			None,
 			Initializing,
