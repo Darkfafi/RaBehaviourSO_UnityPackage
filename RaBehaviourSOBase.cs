@@ -18,7 +18,7 @@ namespace RaBehaviourSO
 
 		internal State _state = State.None;
 
-		protected void Awake()
+		protected virtual void Awake()
 		{
 			hideFlags |= HideFlags.DontUnloadUnusedAsset;
 		}
